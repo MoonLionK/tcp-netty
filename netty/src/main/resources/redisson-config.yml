@@ -1,0 +1,19 @@
+singleServerConfig:
+  idleConnectionTimeout: 10000 #连接空闲超时时间为10,000毫秒
+  connectTimeout: 10000 #连接超时时间为10,000毫秒
+  timeout: 3000 #操作超时时间为3,000毫秒
+  retryAttempts: 3 #连接重试尝试次数为3次
+  retryInterval: 1500 #重试间隔为1,500毫秒
+  password: null #密码
+  subscriptionsPerConnection: 5 #每个连接的最大订阅数为5
+  clientName: null #客户端名称为空
+  address: "redis://127.0.0.1:6379"
+  subscriptionConnectionMinimumIdleSize: 1 #订阅连接的最小空闲连接数为1
+  subscriptionConnectionPoolSize: 50 #订阅连接池大小为50
+  connectionMinimumIdleSize: 10 #连接的最小空闲连接数为10
+  connectionPoolSize: 64 #连接池大小为64
+  database: 0 #数据库编号
+  dnsMonitoringInterval: 5000 #DNS监控间隔为5,000毫秒
+threads: 0 #线程数为0
+nettyThreads: 0 #Netty线程数为0
+codec: !<org.redisson.codec.JsonJacksonCodec> { } #使用JsonJacksonCodec作为编解码器
