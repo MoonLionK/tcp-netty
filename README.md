@@ -12,4 +12,4 @@ ps: [TcpAbstract.java](netty%2Fsrc%2Fmain%2Fjava%2Fcom%2Fcn%2Fnetty%2FTcpAbstrac
 
 未实现:
 1. 只支持的String的编解码,16进制等暂不支持
-2. 重连重试和短线检查未实现
+2. 重连重试和断线检查未实现
