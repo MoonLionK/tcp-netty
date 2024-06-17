@@ -8,6 +8,7 @@
 3. 提供TCP服务端和客户端的连接,数据传输和断开连接的公共抽象
 4. 基于dockerCompose部署
 5. 整合hertzbeat做组件监控
+6. 基于QlExpress的动态计算公式配置
 
 ps: [TcpAbstract.java](netty%2Fsrc%2Fmain%2Fjava%2Fcom%2Fcn%2Fnetty%2FTcpAbstract.java)
 的DEVICE_MAP中使用设备连接的remoteAddress作为唯一标识
