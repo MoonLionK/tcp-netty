@@ -23,7 +23,7 @@ services:
     environment:
       MYSQL_DATABASE: 'data'
       MYSQL_DATABASE2: 'system'
-      MYSQL_ROOT_PASSWORD: Dts@123<>?
+      MYSQL_ROOT_PASSWORD: 123456
 
   dts-redis:
     container_name: dts-redis
