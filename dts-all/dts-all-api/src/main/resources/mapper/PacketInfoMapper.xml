@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chc.dts.api.dao.PacketInfoMapper">
+
+    <select id="getByLocalAddress" resultType="chc.dts.api.entity.PacketInfo">
+        SELECT tp.*
+        FROM packet_info tp
+        right join device td on tp.device_code=td.device_code
+        left join channel_info tc on tc.channel_code =td.channel_code
+        WHERE CONCAT('/',tc.ip , ':', tc.port) =#{localAddress}
+          and tp.deleted=0 and tc.deleted=0 and td.deleted=0
+    </select>
+</mapper>

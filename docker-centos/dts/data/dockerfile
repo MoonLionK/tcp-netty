@@ -1,0 +1,13 @@
+## AdoptOpenJDK 停止发布 OpenJDK 二进制，而 Eclipse Temurin 是它的延伸，提供更好的稳定性
+FROM eclipse-temurin:8-jre
+# author
+MAINTAINER xgy
+
+# 容器内创建目录
+RUN mkdir -p /home/dts/data
+# 指定路径
+WORKDIR /home/dts/data
+# 复制jar文件到路径
+COPY ./jar/dts-data-1.0.0.jar /home/dts/data/dts-data-1.0.0.jar
+# 启动网关服务
+ENTRYPOINT ["java","-jar","dts-data-1.0.0.jar"]

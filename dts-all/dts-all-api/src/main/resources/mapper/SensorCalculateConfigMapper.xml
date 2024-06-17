@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chc.dts.api.dao.SensorCalculateConfigMapper">
+
+    <resultMap id="configs" type="chc.dts.api.pojo.dto.SensorCalculateDTO" autoMapping="true">
+        <result column="calculate_param" property="calculateParam" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+    </resultMap>
+    <select id="getCalculateConfigs" resultMap="configs">
+        select
+        c.calculate_rule,
+        c.calculate_type,
+        c.calculate_param,
+        c.result_name,
+        c.other_sensor_code,
+        c.time_range,
+        c.sensor_code
+        from  sensor_calculate_config  c
+        where c.sensor_code in
+        <foreach collection="sensorCode" item="code" separator="," open="(" close=")">
+            #{code}
+        </foreach>
+        and c.deleted = 0
+    </select>
+</mapper>

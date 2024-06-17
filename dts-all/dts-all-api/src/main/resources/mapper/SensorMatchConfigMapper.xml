@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chc.dts.api.dao.SensorMatchConfigMapper">
+
+    <select id="getMatchConfigs" resultType="chc.dts.api.pojo.dto.SensorMatchDTO">
+        select m.match_rule,m.check_type,m.sensor_code,m.logic_type
+        from sensor_match_config m
+        where m.sensor_code in
+        <foreach collection="sensorCode" item="code" separator="," open="(" close=")">
+            #{code}
+        </foreach>
+        and m.deleted is false
+
+    </select>
+</mapper>

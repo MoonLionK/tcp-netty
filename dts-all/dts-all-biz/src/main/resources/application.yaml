@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: dto-all
+  main:
+    allow-circular-references: true # 允许循环依赖，因为项目是三层架构，无法避免这个情况。
+
+  profiles:
+    active: dev
+
+  # Servlet 配置
+  servlet:
+    # 文件上传相关配置项
+    multipart:
+      max-file-size: 16MB # 单个文件大小
+      max-request-size: 32MB # 设置总上传的文件大小
+
+  # Jackson 配置项
+  jackson:
+    serialization:
+      write-dates-as-timestamps: true # 设置 Date 的格式，使用时间戳
+      write-date-timestamps-as-nanoseconds: false # 设置不使用 nanoseconds 的格式。例如说 1611460870.401，而是直接 1611460870401
+      write-durations-as-timestamps: true # 设置 Duration 的格式，使用时间戳
+      fail-on-empty-beans: false # 允许序列化无属性的 Bean
+
+--- #################### MyBatis Plus 的配置项 ####################
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true # 虽然默认为 true ，但是还是显示去指定下。
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: NONE # “智能”模式，基于 IdTypeEnvironmentPostProcessor + 数据源的类型，自动适配成 AUTO、INPUT 模式。
+      #      id-type: AUTO # 自增 ID，适合 MySQL 等直接自增的数据库
+      #      id-type: INPUT # 用户输入 ID，适合 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库
+      #      id-type: ASSIGN_ID # 分配 ID，默认使用雪花算法。注意，Oracle、PostgreSQL、Kingbase、DB2、H2 数据库时，需要去除实体类上的 @KeySequence 注解
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+
+############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
+sa-token:
+  # token 名称（同时也是 cookie 名称）
+  token-name: satoken
+  # token 有效期（单位：秒） 默认30天，-1 代表永久有效
+  timeout: 604800
+  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
+  active-timeout: -1
+  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  is-share: true
+  # token 风格（默认可取值：uuid、simple-uuid、random-32、random-64、random-128、tik）
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: true
+--- #################### DTS相关配置 ####################

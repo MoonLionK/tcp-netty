@@ -1,0 +1,121 @@
+services:
+  dts-mysql:
+    container_name: dts-mysql
+    restart: always
+    image: mysql:5.7
+    build:
+      context: ./mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/logs:/logs
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/db/:/docker-entrypoint-initdb.d/
+    command: [
+      'mysqld',
+      '--innodb-buffer-pool-size=8G',
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci',
+      '--default-time-zone=+8:00',
+      '--lower-case-table-names=1'
+    ]
+    environment:
+      MYSQL_DATABASE: 'data'
+      MYSQL_DATABASE2: 'system'
+      MYSQL_ROOT_PASSWORD: Dts@123<>?
+
+  dts-redis:
+    container_name: dts-redis
+    restart: always
+    image: redis
+    build:
+      context: ./redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/conf/redis.conf:/home/dts/redis/redis.conf
+      - ./redis/data:/data
+    command: redis-server /home/dts/redis/redis.conf
+
+  dts-nginx:
+    container_name: dts-nginx
+    restart: always
+    image: nginx
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/html/dist:/home/dts/projects/dts-ui
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/logs:/var/log/nginx
+      - ./nginx/conf.d:/etc/nginx/conf.d
+
+  hertzbeat:
+    container_name: dts-hertzbeat
+    restart: always
+    image: tancloud/hertzbeat
+    environment:
+      LANG=zh_CN: UTF-8
+    volumes:
+      - ./hertzbeat/data:/opt/hertzbeat/data
+      - ./hertzbeat/log:/opt/hertzbeat/logs
+      - ./hertzbeat/config/application.yml:/opt/hertzbeat/config/application.yml
+      - ./hertzbeat/config/sureness.yml:/opt/hertzbeat/config/sureness.yml
+    network_mode: host
+
+  dts-receive:
+    container_name: dts-receive
+    restart: always
+    build:
+      context: ./dts/receive
+      dockerfile: dockerfile
+    volumes:
+      - ./dts/log:/log
+    ports:
+      - "8083:8083"
+      - "8084:8084"
+    depends_on:
+      - dts-redis
+      - dts-mysql
+      - dts-nginx
+
+  dts-all:
+    container_name: dts-all
+    restart: always
+    build:
+      context: ./dts/all
+      dockerfile: dockerfile
+    volumes:
+      - ./dts/log:/log
+    ports:
+      - "8081:8081"
+    depends_on:
+      - dts-redis
+      - dts-mysql
+      - dts-nginx
+
+  dts-data:
+    container_name: dts-data
+    restart: always
+    build:
+      context: ./dts/data
+      dockerfile: dockerfile
+    volumes:
+      - ./dts/log:/log
+    ports:
+      - "8082:8082"
+    depends_on:
+      - dts-redis
+      - dts-mysql
+      - dts-nginx
+
+
+
+networks:
+  host:
+    external: true
+
+
+

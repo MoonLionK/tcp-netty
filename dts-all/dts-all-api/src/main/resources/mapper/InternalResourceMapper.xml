@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chc.dts.api.dao.InternalResourceMapper">
+
+    <resultMap id="resultMap" type="chc.dts.api.entity.InternalResource" autoMapping="true">
+        <id property="id" column="id"/>
+        <result property="key" column="Key"/>
+        <result property="lang" column="lang"/>
+        <result property="text" column="text"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="getResourceByKeyAndLang" resultType="java.lang.String">
+        SELECT `text`
+        FROM internal_resource
+        WHERE `key` = #{key}
+          AND `lang` = #{lang}
+    </select>
+    <select id="getResourceWeb" resultMap="resultMap">
+        SELECT id, lang, internal_key, text
+        FROM internal_resource
+        where `type` = 1
+           or `type` = 0
+    </select>
+
+    <select id="getResourceApp" resultMap="resultMap">
+        SELECT lang, `key`, text
+        FROM internal_resource
+        where `type` = 2
+           or `type` = 0
+    </select>
+</mapper>

@@ -1,0 +1,33 @@
+server:
+  port: 8083
+  servlet:
+    context-path: /dts/receive
+
+--- #################### 数据库相关配置 ####################
+
+spring:
+  # 数据源配置项
+  autoconfigure:
+    exclude:
+      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure # 排除 Druid 的自动配置，使用 dynamic-datasource-spring-boot-starter 配置多数据源
+  datasource:
+    dynamic: # 多数据源配置
+      primary: data #设置默认的数据源或者数据源组,默认值即为master
+      datasource:
+        data:
+          url: jdbc:mysql://127.0.0.1:3306/data?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+          username: root
+          password: 123456
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        system:
+          url: jdbc:mysql://127.0.0.1:3306/system?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+          username: root
+          password: 123456
+          driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    #password:
+    database: 0
+    timeout: 3000
+

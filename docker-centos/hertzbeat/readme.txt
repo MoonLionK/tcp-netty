@@ -1,0 +1,3 @@
+hertzbeat部署成功后,在监控中心页面导入hertzbeat_monitor.json即可实现对业务服务,centos,redis,mysql和docker的监控
+默认账号密码 admin/hertzbeat
+默认访问端口:1157

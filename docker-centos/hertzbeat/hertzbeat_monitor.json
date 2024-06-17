@@ -1,0 +1,259 @@
+[
+  {
+    "monitor": {
+      "name": "SPRINGBOOT2_127.0.0.1",
+      "app": "springboot2",
+      "host": "127.0.0.1",
+      "intervals": 60,
+      "status": 1,
+      "tags": [
+        13,
+        14
+      ]
+    },
+    "params": [
+      {
+        "field": "host",
+        "type": 1,
+        "value": "127.0.0.1"
+      },
+      {
+        "field": "port",
+        "type": 0,
+        "value": "8084"
+      },
+      {
+        "field": "ssl",
+        "type": 1,
+        "value": "false"
+      },
+      {
+        "field": "base_path",
+        "type": 1,
+        "value": "/actuator"
+      }
+    ],
+    "metrics": [
+      "available",
+      "environment",
+      "threads",
+      "memory_used",
+      "health"
+    ],
+    "detected": false
+  },
+  {
+    "monitor": {
+      "name": "CENTOS_127.0.0.1",
+      "app": "centos",
+      "host": "127.0.0.1",
+      "intervals": 60,
+      "status": 1,
+      "tags": [
+        11,
+        12
+      ]
+    },
+    "params": [
+      {
+        "field": "host",
+        "type": 1,
+        "value": "127.0.0.1"
+      },
+      {
+        "field": "port",
+        "type": 0,
+        "value": "22"
+      },
+      {
+        "field": "timeout",
+        "type": 0,
+        "value": "6000"
+      },
+      {
+        "field": "reuseConnection",
+        "type": 1,
+        "value": "true"
+      },
+      {
+        "field": "username",
+        "type": 1,
+        "value": "root"
+      },
+      {
+        "field": "password",
+        "type": 2,
+        "value": "Z7D5PI4ai2Z2Psfm6Kh0qQ=="
+      },
+      {
+        "field": "privateKey",
+        "type": 1
+      }
+    ],
+    "metrics": [
+      "basic",
+      "cpu",
+      "memory",
+      "disk",
+      "interface",
+      "disk_free",
+      "top_cpu_process",
+      "top_mem_process"
+    ],
+    "detected": false
+  },
+  {
+    "monitor": {
+      "name": "REDIS_127.0.0.1",
+      "app": "redis",
+      "host": "127.0.0.1",
+      "intervals": 60,
+      "status": 1,
+      "tags": [
+        9,
+        10
+      ]
+    },
+    "params": [
+      {
+        "field": "host",
+        "type": 1,
+        "value": "127.0.0.1"
+      },
+      {
+        "field": "port",
+        "type": 0,
+        "value": "6379"
+      },
+      {
+        "field": "timeout",
+        "type": 0,
+        "value": "3000"
+      },
+      {
+        "field": "username",
+        "type": 1
+      },
+      {
+        "field": "password",
+        "type": 1
+      }
+    ],
+    "metrics": [
+      "server",
+      "clients",
+      "memory",
+      "persistence",
+      "stats",
+      "replication",
+      "cpu",
+      "errorstats",
+      "cluster",
+      "commandstats",
+      "keyspace"
+    ],
+    "detected": false
+  },
+  {
+    "monitor": {
+      "name": "DOCKER_127.0.0.1",
+      "app": "docker",
+      "host": "127.0.0.1",
+      "intervals": 60,
+      "status": 1,
+      "tags": [
+        7,
+        8
+      ]
+    },
+    "params": [
+      {
+        "field": "host",
+        "type": 1,
+        "value": "127.0.0.1"
+      },
+      {
+        "field": "port",
+        "type": 0,
+        "value": "2375"
+      },
+      {
+        "field": "ssl",
+        "type": 1,
+        "value": "false"
+      }
+    ],
+    "metrics": [
+      "system",
+      "containers",
+      "stats"
+    ],
+    "detected": false
+  },
+  {
+    "monitor": {
+      "name": "MYSQL_127.0.0.1",
+      "app": "mysql",
+      "host": "127.0.0.1",
+      "intervals": 60,
+      "status": 1,
+      "tags": [
+        5,
+        6
+      ]
+    },
+    "params": [
+      {
+        "field": "host",
+        "type": 1,
+        "value": "127.0.0.1"
+      },
+      {
+        "field": "port",
+        "type": 0,
+        "value": "3306"
+      },
+      {
+        "field": "database",
+        "type": 1,
+        "value": "data"
+      },
+      {
+        "field": "username",
+        "type": 1,
+        "value": "root"
+      },
+      {
+        "field": "password",
+        "type": 2,
+        "value": "SVQe/Z7LqrH1sA7uSzPbRw=="
+      },
+      {
+        "field": "timeout",
+        "type": 0,
+        "value": "6000"
+      },
+      {
+        "field": "url",
+        "type": 1
+      }
+    ],
+    "metrics": [
+      "basic",
+      "cache",
+      "performance",
+      "innodb",
+      "status",
+      "handler",
+      "connection",
+      "thread",
+      "tmp",
+      "select_type",
+      "sort",
+      "table_lock",
+      "process_state",
+      "slow_sql"
+    ],
+    "detected": false
+  }
+]

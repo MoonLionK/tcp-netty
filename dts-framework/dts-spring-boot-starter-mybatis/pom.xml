@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>chc.dts</groupId>
+        <artifactId>dts-framework</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>dts-spring-boot-starter-mybatis</artifactId>
+    <packaging>jar</packaging>
+    <name>${project.artifactId}</name>
+    <description>MyBatis 拓展,代码生成,自动注入等</description>
+    <dependencies>
+        <dependency>
+            <groupId>chc.dts</groupId>
+            <artifactId>dts-common</artifactId>
+        </dependency>
+        <!-- DB 相关 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-generator</artifactId> <!-- 代码生成器，使用它解析表结构 -->
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>dynamic-datasource-spring-boot-starter</artifactId> <!-- 多数据源 -->
+        </dependency>
+        <dependency>
+            <groupId>com.github.yulichang</groupId>
+            <artifactId>mybatis-plus-join-boot-starter</artifactId> <!-- MyBatis 联表查询 -->
+        </dependency>
+        <!--模版引擎-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
