@@ -1,13 +1,23 @@
 package chc.dts.receive.netty.server;
 
-import chc.dts.api.controller.vo.TcpCommonReq;
-import chc.dts.api.controller.vo.TcpInfoResq;
+import chc.dts.api.common.CodeGenUtil;
+import chc.dts.api.dao.ChannelInfoMapper;
+import chc.dts.api.entity.ChannelInfo;
+import chc.dts.api.pojo.constants.CodeGenEnum;
+import chc.dts.api.pojo.vo.LocalInfoResq;
+import chc.dts.api.pojo.vo.TcpCommonReq;
+import chc.dts.api.pojo.vo.TcpInfoResq;
+import chc.dts.api.service.IConnectInfoService;
 import chc.dts.api.service.IDeviceService;
 import chc.dts.common.core.KeyValue;
 import chc.dts.common.exception.ErrorCode;
+import chc.dts.common.exception.enums.GlobalErrorCodeConstants;
 import chc.dts.common.pojo.CommonResult;
 import chc.dts.receive.netty.TcpAbstract;
 import chc.dts.receive.netty.TcpInterface;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.google.common.collect.Lists;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -18,6 +28,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -27,10 +38,12 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import static chc.dts.common.config.ThreadPoolConfig.COMMON_POOL;
 import static chc.dts.common.config.ThreadPoolConfig.NETTY_SERVER_CONNECT_POOL;
@@ -46,6 +59,8 @@ import static chc.dts.common.constant.TcpConstant.TCP_SERVER;
 public class TcpNettyServer extends TcpAbstract implements TcpInterface {
     @Resource
     private IDeviceService deviceService;
+    @Resource
+    private CodeGenUtil codeGenUtil;
     @Resource(name = NETTY_SERVER_CONNECT_POOL)
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     @Resource(name = COMMON_POOL)
@@ -57,6 +72,11 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
     EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     //默认实际 cpu核数 * 2
     EventLoopGroup workerGroup = new NioEventLoopGroup();
+    List<ChannelFuture> channelFutureList = new ArrayList<>();
+
+    protected TcpNettyServer(IConnectInfoService iConnectInfoService, ChannelInfoMapper channelInfoMapper) {
+        super(iConnectInfoService, channelInfoMapper);
+    }
 
     /**
      * 根据设备信息获取启动时需要监听的端口信息
@@ -79,11 +99,36 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
      *
      * @param req ip:port
      */
-    @Override
-    public CommonResult<String> connect(TcpCommonReq req) {
+    public CommonResult<String> addMonitor(TcpCommonReq req) {
+        Long count = channelInfoMapper.selectCount(new LambdaQueryWrapper<ChannelInfo>()
+                .eq(ChannelInfo::getIp, req.getIp())
+                .eq(ChannelInfo::getPort, req.getPort()));
+        if (count > 0) {
+            return CommonResult.error(500, "此地址监听已存在");
+        }
+        if (Lists.newArrayList(8080, 8081, 8082, 8083, 8084, 3306, 22, 2375, 80, 6379).contains(req.getPort())) {
+            return CommonResult.error(500, "不能新增已占用端口的监听");
+        }
+
+        ChannelInfo channelInfo = new ChannelInfo()
+                .setIp(req.getIp())
+                .setPort(req.getPort())
+                .setChannelCode(codeGenUtil.getCode(CodeGenEnum.CHANNEL));
+        channelInfo.setCreator(1);
+        channelInfo.setUpdater(1);
+        channelInfoMapper.insert(channelInfo);
+        return CommonResult.success();
+    }
+
+    public CommonResult<String> openMonitor(TcpCommonReq req) {
         CompletableFuture<CommonResult<String>> future = CompletableFuture.supplyAsync(() -> {
             try {
                 ChannelFuture cf = bootstrap.bind(req.getIp(), req.getPort()).sync();
+                channelFutureList.add(cf);
+                channelInfoMapper.update(new LambdaUpdateWrapper<ChannelInfo>()
+                        .eq(ChannelInfo::getIp, req.getIp())
+                        .eq(ChannelInfo::getPort, req.getPort())
+                        .set(ChannelInfo::getStatus, 0));
                 log.info("新增监听ip和端口号:" + req.getIp() + ":" + req.getPort());
                 cf.channel().closeFuture().sync();
                 return CommonResult.success();
@@ -102,7 +147,6 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
             return CommonResult.error(500, e.getMessage());
         }
     }
-
 
     /**
      * 发送消息
@@ -136,6 +180,15 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
             resqList.add(resq);
         });
         return resqList;
+    }
+
+    @Override
+    public List<LocalInfoResq> getInitInfo() {
+        List<ChannelInfo> channelInfos = channelInfoMapper.selectList();
+        // 转换为新的 List
+        return channelInfos.stream()
+                .map(info -> new LocalInfoResq(info.getIp(), info.getPort(), info.getStatus()))
+                .collect(Collectors.toList());
     }
 
     private static void buildResq(ArrayList<KeyValue<String, ChannelId>> value, TcpInfoResq resq, String[] split) {
@@ -188,13 +241,11 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
                             6. 当 IdleStateEvent 触发后 , 就会传递给管道 的下一个handler去处理通过调用(触发)下一个handler 的 userEventTiggered , 在该方法中去处理 IdleStateEvent(读空闲，写空闲，读写空闲)
                              */
                             ch.pipeline().addLast(new IdleStateHandler(7000, 7000, 300, TimeUnit.SECONDS));
-
                             //编码器。发送消息时候用
-                            ch.pipeline().addLast("decode", new ServerHandler());
+                            ch.pipeline().addLast("decode", new ServerHandler(new TcpNettyServer(iConnectInfoService, channelInfoMapper)));
                         }
                     });
             //启动服务器(并绑定端口),此处必须使用2个循环若改变顺序就无法监听多个端口
-            List<ChannelFuture> channelFutureList = new ArrayList<>();
             for (KeyValue<String, Integer> keyValue : keyValues) {
                 ChannelFuture cf = bootstrap.bind(keyValue.getKey(), keyValue.getValue()).sync();
                 log.info("已监听ip和端口号:" + keyValue.getKey() + ":" + keyValue.getValue());
@@ -211,4 +262,46 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
     }
 
 
+    public ErrorCode closeMonitor(TcpCommonReq tcpCommonReq) {
+        List<ChannelFuture> removeList = new ArrayList<>();
+        DEVICE_MAP.remove(tcpCommonReq.getIp() + ":" + tcpCommonReq.getPort());
+        for (ChannelFuture channelFuture : channelFutureList) {
+            Channel channel = channelFuture.channel();
+            String localAddress = channel.localAddress().toString().replace("/", "");
+            String ip = tcpCommonReq.getIp();
+            Integer port = tcpCommonReq.getPort();
+            if (localAddress.equals(ip + ":" + port)) {
+                // 关闭 Channel
+                try {
+                    channel.close().sync();
+                    removeList.add(channelFuture);
+                    channelFutureList.removeAll(removeList);
+                    channelInfoMapper.update(new LambdaUpdateWrapper<ChannelInfo>()
+                            .eq(ChannelInfo::getIp, ip)
+                            .eq(ChannelInfo::getPort, port)
+                            .set(ChannelInfo::getStatus, 1));
+                    return GlobalErrorCodeConstants.SUCCESS;
+                } catch (InterruptedException e) {
+                    log.error("监听关闭异常", e);
+                    return new ErrorCode(500, e.getMessage());
+                }
+            }
+        }
+        return new ErrorCode(500, "不存在对应的通道信息");
+    }
+
+    public ErrorCode deleteMonitor(TcpCommonReq req) {
+        LambdaQueryWrapper<ChannelInfo> wrapper = new LambdaQueryWrapper<ChannelInfo>()
+                .eq(ChannelInfo::getIp, req.getIp())
+                .eq(ChannelInfo::getPort, req.getPort());
+        ChannelInfo channelInfo = channelInfoMapper.selectOne(wrapper);
+        if (ObjectUtils.isEmpty(channelInfo)) {
+            return new ErrorCode(500, "找不到对应的通道信息");
+        }
+        if (Objects.equals(channelInfo.getStatus(), 0)) {
+            return new ErrorCode(500, "启动状态的服务器监听不允许删除");
+        }
+        channelInfoMapper.delete(wrapper);
+        return GlobalErrorCodeConstants.SUCCESS;
+    }
 }

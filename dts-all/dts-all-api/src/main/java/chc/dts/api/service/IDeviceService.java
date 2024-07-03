@@ -1,10 +1,12 @@
 package chc.dts.api.service;
 
+import chc.dts.api.controller.vo.DeviceCodeAndNameResq;
 import chc.dts.api.entity.Device;
 import chc.dts.common.core.KeyValue;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -30,4 +32,12 @@ public interface IDeviceService extends IService<Device> {
      * @return DeviceType
      */
     Device selectDeviceTypeByLocalAddress(String localAddress);
+
+    /**
+     * 查询下拉列表
+     *
+     * @param model tcp通信模式
+     * @return List<DeviceCodeAndNameResq>
+     */
+    List<DeviceCodeAndNameResq> dropdownList(String model);
 }

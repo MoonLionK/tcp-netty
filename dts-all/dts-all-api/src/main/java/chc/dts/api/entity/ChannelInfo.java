@@ -58,4 +58,8 @@ public class ChannelInfo extends BaseDO {
     @Schema(description = "串口-停止位")
     @TableField("serial_stop_bits")
     private String serialStopBits;
+
+    @Schema(description = "0:启动 1关闭")
+    @TableField("status")
+    private Integer status;
 }

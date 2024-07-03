@@ -3,8 +3,6 @@ server:
   servlet:
     context-path: /dts/receive
 management:
-  server:
-    port: 8084
   endpoints:
     web:
       exposure:
@@ -25,17 +23,17 @@ spring:
       primary: data #设置默认的数据源或者数据源组,默认值即为master
       datasource:
         data:
-          url: jdbc:mysql://127.0.0.1:3306/data?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+          url: jdbc:mysql://121.36.229.234:3306/data?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
           username: root
-          password: 123456
+          password: Dts@123<>?
           driver-class-name: com.mysql.cj.jdbc.Driver
         system:
-          url: jdbc:mysql://127.0.0.1:3306/system?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+          url: jdbc:mysql://121.36.229.234:3306/system?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
           username: root
-          password: 123456
+          password: Dts@123<>?
           driver-class-name: com.mysql.cj.jdbc.Driver
   redis:
-    host: 127.0.0.1
+    host: 121.36.229.234
     port: 6379
     #password:
     database: 0

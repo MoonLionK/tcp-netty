@@ -4,6 +4,7 @@ import chc.dts.common.pojo.PageResult;
 import chc.dts.common.util.collection.CollectionUtils;
 import cn.hutool.core.bean.BeanUtil;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -57,6 +58,32 @@ public class BeanUtils {
             list.forEach(peek);
         }
         return new PageResult<>(list, source.getTotal());
+    }
+
+    /**
+     * 将源对象的属性值拷贝到目标对象中
+     *
+     * @param source 源对象
+     * @param target 目标对象
+     * @throws IllegalArgumentException 异常
+     * @throws IllegalAccessException 异常
+     */
+    public static void copyProperties(Object source, Object target) {
+        Class<?> sourceClass = source.getClass();
+        Class<?> targetClass = target.getClass();
+
+        Field[] sourceFields = sourceClass.getDeclaredFields();
+        for (Field sourceField : sourceFields) {
+            sourceField.setAccessible(true);
+            try {
+                Field targetField = targetClass.getDeclaredField(sourceField.getName());
+                targetField.setAccessible(true);
+                targetField.set(target, sourceField.get(source));
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                // 如果目标对象中没有对应的字段，忽略该字段
+                continue;
+            }
+        }
     }
 
 }

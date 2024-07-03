@@ -1,7 +1,6 @@
 package chc.dts.receive.netty.client;
 
 import chc.dts.common.util.object.SpringUtils;
-import chc.dts.receive.netty.server.TcpNettyServer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
@@ -12,6 +11,7 @@ import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClientHandler extends SimpleChannelInboundHandler<Object> {
     @Getter
     private static final Map<ChannelId, ChannelHandlerContext> CLIENT_CONTEXT_MAP = new ConcurrentHashMap<>();
+    @Resource
+    private TcpNettyClient tcpNettyClient;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
@@ -60,7 +62,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
         Channel channel = ctx.channel();
         String localAddress = channel.localAddress().toString().replace("/", "");
         String remoteAddress = channel.remoteAddress().toString().replace("/", "");
-        TcpNettyClient.deviceAdd(localAddress, remoteAddress, ctx.channel());
+        tcpNettyClient.deviceAdd(localAddress, remoteAddress, ctx.channel());
         log.info("netty-->TCP客户端服务已连接：" + channel.remoteAddress());
     }
 
@@ -71,7 +73,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
         Channel channel = ctx.channel();
         String localAddress = channel.localAddress().toString().replace("/", "");
         String remoteAddress = channel.remoteAddress().toString().replace("/", "");
-        TcpNettyServer.deviceRemove(localAddress, remoteAddress, channel);
+        tcpNettyClient.deviceRemove(localAddress, remoteAddress, channel);
         // 当通道不活跃时关闭通道,关闭的频道会自动从ChannelGroup集合中删除
         ctx.channel().close();
         log.info("netty-->TCP客户端服务断开连接：" + channel.remoteAddress());
@@ -81,10 +83,5 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
     public void channelReadComplete(ChannelHandlerContext ctx) {
         log.info("接收到服务端信息完成");
         ctx.flush();
-        //数据处理完毕后拆包,而后解析数据
-        String remoteAddress = ctx.channel().remoteAddress().toString();
-        //此处位于异步线程,IPacketParsingService无法正常注入
-        //LengthFieldBasedFrameDecoder lengthFieldBasedFrameDecoder = SpringUtils.getBean(LengthFieldBasedFrameDecoder.class);
-        //iPacketParsingService.parse(remoteAddress);
     }
 }

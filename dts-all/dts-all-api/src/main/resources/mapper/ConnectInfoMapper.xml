@@ -2,4 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="chc.dts.api.dao.ConnectInfoMapper">
 
+    <select id="selectActiveIpAndPort" resultMap="selectActiveIpAndPortMap">
+        select info.ip, info.remote_port
+        from connect_info info where deleted=0
+    </select>
+    <resultMap id="selectActiveIpAndPortMap" type="chc.dts.common.core.KeyValue">
+        <result property="key" column="ip"/>
+        <result property="value" column="port"/>
+    </resultMap>
 </mapper>

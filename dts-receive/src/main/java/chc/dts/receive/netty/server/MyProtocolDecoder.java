@@ -107,21 +107,21 @@ public class MyProtocolDecoder extends LengthFieldBasedFrameDecoder {
 
     /**
      * @param in             缓冲区数组
-     * @param unpackProtocal 拆包方法
+     * @param unpackProtocol 拆包方法
      * @return 拆包结果
      */
-    private UnpackResult processMessage(byte[] in, PacketInfo unpackProtocal) {
+    private UnpackResult processMessage(byte[] in, PacketInfo unpackProtocol) {
 
         UnpackResult result = null;
-        switch (unpackProtocal.getType()) {
+        switch (unpackProtocol.getType()) {
             case 1:
-                result = unpackFixed(in, unpackProtocal);
+                result = unpackFixed(in, unpackProtocol);
                 break;
             case 2:
-                result = unpackFixed2(in, unpackProtocal);
+                result = unpackFixed2(in, unpackProtocol);
                 break;
             case 3:
-                result = unpackFixed3(in, unpackProtocal);
+                result = unpackFixed3(in, unpackProtocol);
                 break;
             default:
         }

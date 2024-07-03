@@ -13,6 +13,7 @@ import chc.dts.api.service.impl.SensorInfoServiceImpl;
 import chc.dts.common.core.KeyValue;
 import chc.dts.common.exception.ErrorCode;
 import chc.dts.common.exception.ServiceException;
+import chc.dts.common.util.auth.TokenUtil;
 import chc.dts.data.manage.function.ExpressRunnerPack;
 import chc.dts.data.pojo.dto.CalculatedDataDto;
 import chc.dts.data.pojo.dto.MatchedDataDto;
@@ -73,12 +74,11 @@ public abstract class CommonPaseImpl implements IDataInterface {
     }
 
 
-
     public Boolean check(List<KeyValue<String, String>> parseData, List<SensorMatchDTO> configs) {
         Map<String, String> resourceMap = parseData.stream().collect(Collectors.toMap(KeyValue::getKey, KeyValue::getValue));
 
         //空匹配直接返回错误
-        if (CollUtil.isEmpty(configs)){
+        if (CollUtil.isEmpty(configs)) {
             return false;
         }
 
@@ -86,18 +86,18 @@ public abstract class CommonPaseImpl implements IDataInterface {
 
         //check必须满足的条件
         for (SensorMatchDTO sensorMatchDTO : logicCollect.get(0)) {
-            Boolean onceCheckResult= checkOnce(sensorMatchDTO,resourceMap);
-            if (!onceCheckResult){
+            Boolean onceCheckResult = checkOnce(sensorMatchDTO, resourceMap);
+            if (!onceCheckResult) {
                 return false;
             }
         }
         //check满足一个的条件
         List<SensorMatchDTO> sensorMatchDTOS = logicCollect.get(1);
-        if (!CollUtil.isEmpty(sensorMatchDTOS)){
+        if (!CollUtil.isEmpty(sensorMatchDTOS)) {
             boolean otherResult;
             for (SensorMatchDTO sensorMatchDTO : sensorMatchDTOS) {
-                otherResult=checkOnce(sensorMatchDTO,resourceMap);
-                if (otherResult){
+                otherResult = checkOnce(sensorMatchDTO, resourceMap);
+                if (otherResult) {
                     return true;
                 }
             }
@@ -152,7 +152,7 @@ public abstract class CommonPaseImpl implements IDataInterface {
             List<SensorMatchDTO> sensorMatchConfigs = sensorConfigMap.get(sensorInfo.getSensorCode()).getSensorMatchConfigs();
             Boolean check;
 
-             check = check(parsedData.getParseData(), sensorMatchConfigs);
+            check = check(parsedData.getParseData(), sensorMatchConfigs);
 
             if (check) {
                 MatchedDataDto matchedDataDto = new MatchedDataDto();
@@ -176,8 +176,8 @@ public abstract class CommonPaseImpl implements IDataInterface {
             Map<String, Object> json = matchedDataDto.getMatchData().stream().collect(Collectors.toMap(KeyValue::getKey, KeyValue::getValue));
 
             matchedData.setMatchedData(JSONObject.parseObject(JSON.toJSONString(json)));
-            matchedData.setCreator(0);
-            matchedData.setUpdater(0);
+            matchedData.setCreator(TokenUtil.getLoginId());
+            matchedData.setUpdater(TokenUtil.getLoginId());
             toAdd.add(matchedData);
         }
         return matchedDataService.getBaseMapper().insertBatch(toAdd);
@@ -251,8 +251,8 @@ public abstract class CommonPaseImpl implements IDataInterface {
 
             Map<String, Object> json = calculatedData.getCalculateData().stream().collect(Collectors.toMap(KeyValue::getKey, KeyValue::getValue));
             calculatedData1.setCalculatedData(JSONObject.parseObject(JSON.toJSONString(json)));
-            calculatedData1.setCreator(0);
-            calculatedData1.setUpdater(0);
+            calculatedData1.setCreator(TokenUtil.getLoginId());
+            calculatedData1.setUpdater(TokenUtil.getLoginId());
             toAdd.add(calculatedData1);
         }
         return calculatedDataService.getBaseMapper().insertBatch(toAdd);

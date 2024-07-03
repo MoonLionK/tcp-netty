@@ -29,10 +29,17 @@ netstat -nlpt
 docker compose up -d
 
 三 更新服务
-# 上传jar包至对应的docker文件夹下的jar文件夹下,删除原镜像
-docker rmi [服务名称]
+# 上传jar包至对应的docker文件夹下的jar文件夹下
+docker stop [服务名称]
+docker rm [服务名称]
+docker rmi [镜像名称]
 # 重启服务
 docker compose up -d [服务名称]
+# 示例
+docker stop dts-receive
+docker rm dts-receive
+docker rmi docker-dts-receive
+docker compose up -d dts-receive
 
 
 ```

@@ -1,6 +1,6 @@
 package chc.dts.receive.controller;
 
-import chc.dts.api.controller.vo.TcpCommonReq;
+import chc.dts.api.pojo.vo.TcpCommonReq;
 import chc.dts.common.exception.ErrorCode;
 import chc.dts.common.exception.ServiceException;
 import chc.dts.common.pojo.CommonResult;

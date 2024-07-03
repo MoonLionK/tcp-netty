@@ -65,7 +65,6 @@
         <transmittable-thread-local.version>2.14.5</transmittable-thread-local.version>
         <janino.version>3.0.7</janino.version>
         <QLExpress.version>3.3.3</QLExpress.version>
-        <sa-token.version>1.28.0</sa-token.version>
 
     </properties>
 
@@ -206,24 +205,6 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>QLExpress</artifactId>
                 <version>${QLExpress.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>cn.dev33</groupId>
-                <artifactId>sa-token-spring-boot-starter</artifactId>
-                <version>${sa-token.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>cn.dev33</groupId>
-                <artifactId>sa-token-reactor-spring-boot-starter</artifactId>
-                <version>${sa-token.version}</version>
-            </dependency>
-            <!-- Sa-Token 整合 Redis （使用jackson序列化方式） -->
-            <dependency>
-                <groupId>cn.dev33</groupId>
-                <artifactId>sa-token-dao-redis-jackson</artifactId>
-                <version>${sa-token.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

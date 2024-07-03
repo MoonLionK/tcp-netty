@@ -23,7 +23,7 @@ services:
     environment:
       MYSQL_DATABASE: 'data'
       MYSQL_DATABASE2: 'system'
-      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: Dts@123<>?
 
   dts-redis:
     container_name: dts-redis
@@ -73,9 +73,8 @@ services:
       dockerfile: dockerfile
     volumes:
       - ./dts/log:/log
-    ports:
-      - "8083:8083"
-      - "8084:8084"
+    # 加入本地网络相当于暴露了所有端口
+    network_mode: host
     depends_on:
       - dts-redis
       - dts-mysql

@@ -5,6 +5,7 @@ target/
 *.log
 *.zip
 *.tar
+*.jar
 
 ### IntelliJ IDEA ###
 /.idea

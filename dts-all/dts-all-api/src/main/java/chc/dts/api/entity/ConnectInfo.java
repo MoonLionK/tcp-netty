@@ -42,4 +42,12 @@ public class ConnectInfo extends BaseDO {
     @Schema(description = "通道id")
     @TableField("channel_id")
     private Long channelId;
+
+    @Schema(description = "状态 0:已连接 1:未连接")
+    @TableField("status")
+    private Integer status;
+
+    @Schema(description = "是否自启动0:是 1:否")
+    @TableField("auto_connect")
+    private Boolean autoConnect;
 }

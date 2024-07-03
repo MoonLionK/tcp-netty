@@ -3,10 +3,12 @@
 <mapper namespace="chc.dts.api.dao.DeviceMapper">
 
     <select id="selectActiveIpAndPortByTcpModel" resultMap="selectActiveIpAndPortMap">
-        select info.ip, info.port
-        from device de
-                 left join (select channel_code, ip, port from channel_info where deleted = false) info on info.channel_code = de.channel_code
-        where de.tcp_model = #{model}
+        select info.channel_code, info.ip, info.port
+        from channel_info info
+                 left join device de on info.channel_code = de.channel_code
+        where info.deleted = false
+          and info.status = 0
+          and de.tcp_model = #{model}
           and de.device_status = 0
           and de.deleted = false
     </select>
@@ -14,6 +16,13 @@
         select *
         from device
         where channel_code = (select channel_code from channel_info where ip = #{ip} and port = #{port} and deleted = false)
+    </select>
+    <select id="selectDropdownList" resultType="chc.dts.api.controller.vo.DeviceCodeAndNameResq">
+        select de.device_code, device_name
+        from device de
+        where de.tcp_model = #{model}
+          and de.device_status = 0
+          and de.deleted = false
     </select>
     <resultMap id="selectActiveIpAndPortMap" type="chc.dts.common.core.KeyValue">
         <result property="key" column="ip"/>

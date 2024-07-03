@@ -1,5 +1,6 @@
 package chc.dts.api.service.impl;
 
+import chc.dts.api.controller.vo.DeviceCodeAndNameResq;
 import chc.dts.api.dao.DeviceMapper;
 import chc.dts.api.entity.Device;
 import chc.dts.api.service.IDeviceService;
@@ -8,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -29,6 +31,12 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     public Device selectDeviceTypeByLocalAddress(String localAddress) {
         String[] split = localAddress.split(":");
         return this.getBaseMapper().selectDeviceByLocalAddress(split[0], split[1]);
+    }
+
+    @Override
+    public List<DeviceCodeAndNameResq> dropdownList(String model) {
+        return this.getBaseMapper().selectDropdownList(model);
+
     }
 }
 

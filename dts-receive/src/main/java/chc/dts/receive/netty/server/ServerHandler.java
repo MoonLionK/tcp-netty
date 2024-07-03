@@ -1,12 +1,7 @@
 package chc.dts.receive.netty.server;
 
 
-import chc.dts.common.pojo.RedisMessage;
-import chc.dts.common.util.object.SpringUtils;
-import chc.dts.receive.netty.MessageLog;
-import chc.dts.receive.netty.RedisPublish;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
@@ -31,6 +26,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Getter
     private static final Map<ChannelId, ChannelHandlerContext> SERVER_CONTEXT_MAP = new ConcurrentHashMap<>();
+    private TcpNettyServer tcpNettyServer;
+
+    public ServerHandler(TcpNettyServer tcpNettyServer) {
+        this.tcpNettyServer = tcpNettyServer;
+    }
 
     /**
      * @param ctx 上下文
@@ -81,7 +81,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel channel = ctx.channel();
         String localAddress = channel.localAddress().toString().replace("/", "");
         String remoteAddress = channel.remoteAddress().toString().replace("/", "");
-        TcpNettyServer.deviceAdd(localAddress, remoteAddress, ctx.channel());
+        tcpNettyServer.deviceAdd(localAddress, remoteAddress, ctx.channel());
         log.info("netty-->TCP客户端服务上线：" + channel.remoteAddress());
     }
 
@@ -93,7 +93,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel channel = ctx.channel();
         String localAddress = channel.localAddress().toString().replace("/", "");
         String remoteAddress = channel.remoteAddress().toString().replace("/", "");
-        TcpNettyServer.deviceRemove(localAddress, remoteAddress, channel);
+        tcpNettyServer.deviceRemove(localAddress, remoteAddress, channel);
         // 当通道不活跃时关闭通道,关闭的频道会自动从ChannelGroup集合中删除
         ctx.channel().close();
         log.info("netty-->TCP客户端服务下线：" + channel.remoteAddress());

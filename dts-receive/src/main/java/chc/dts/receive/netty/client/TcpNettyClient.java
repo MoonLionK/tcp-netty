@@ -1,8 +1,11 @@
 package chc.dts.receive.netty.client;
 
-import chc.dts.api.controller.vo.TcpCommonReq;
-import chc.dts.api.controller.vo.TcpInfoResq;
-import chc.dts.api.service.IDeviceService;
+import chc.dts.api.dao.ChannelInfoMapper;
+import chc.dts.api.dao.ConnectInfoMapper;
+import chc.dts.api.pojo.vo.LocalInfoResq;
+import chc.dts.api.pojo.vo.TcpCommonReq;
+import chc.dts.api.pojo.vo.TcpInfoResq;
+import chc.dts.api.service.IConnectInfoService;
 import chc.dts.common.core.KeyValue;
 import chc.dts.common.exception.ErrorCode;
 import chc.dts.common.exception.enums.GlobalErrorCodeConstants;
@@ -28,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import static chc.dts.common.config.ThreadPoolConfig.COMMON_POOL;
-import static chc.dts.common.constant.TcpConstant.TCP_CLIENT;
 
 /**
  * TcpNetty客户端代码支持多线程数据处理和多端口监听
@@ -40,18 +42,22 @@ import static chc.dts.common.constant.TcpConstant.TCP_CLIENT;
 @Component
 public class TcpNettyClient extends TcpAbstract implements TcpInterface {
     @Resource
-    private IDeviceService deviceService;
+    private ConnectInfoMapper connectInfoMapper;
     @Resource(name = COMMON_POOL)
     private ThreadPoolTaskExecutor commonThreadPoolTaskExecutor;
 
     //创建客户端端的启动对象，配置参数
     Bootstrap bootstrap = new Bootstrap();
 
+    protected TcpNettyClient(IConnectInfoService iConnectInfoService, ChannelInfoMapper channelInfoMapper) {
+        super(iConnectInfoService, channelInfoMapper);
+    }
+
 
     @Override
     @PostConstruct
     public void startNetty() {
-        ArrayList<KeyValue<String, Integer>> keyValues = deviceService.selectActiveIpAndPort(TCP_CLIENT);
+        ArrayList<KeyValue<String, Integer>> keyValues = connectInfoMapper.selectActiveIpAndPort();
         commonThreadPoolTaskExecutor.execute(() -> {
             try {
                 this.init(keyValues);
@@ -98,7 +104,6 @@ public class TcpNettyClient extends TcpAbstract implements TcpInterface {
 
     }
 
-    @Override
     public CommonResult<String> connect(TcpCommonReq req) {
         ChannelFuture f;
         try {
@@ -128,6 +133,11 @@ public class TcpNettyClient extends TcpAbstract implements TcpInterface {
 
     @Override
     public List<TcpInfoResq> getChannelInfo(String port) {
+        return null;
+    }
+
+    @Override
+    public List<LocalInfoResq> getInitInfo() {
         return null;
     }
 }

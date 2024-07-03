@@ -1,7 +1,8 @@
 package chc.dts.receive.controller;
 
-import chc.dts.api.controller.vo.TcpCommonReq;
-import chc.dts.api.controller.vo.TcpInfoResq;
+import chc.dts.api.pojo.vo.LocalInfoResq;
+import chc.dts.api.pojo.vo.TcpCommonReq;
+import chc.dts.api.pojo.vo.TcpInfoResq;
 import chc.dts.common.exception.ErrorCode;
 import chc.dts.common.exception.ServiceException;
 import chc.dts.common.pojo.CommonResult;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * TcpServer前端控制器
@@ -29,16 +29,27 @@ public class TcpServerController {
     @Resource
     private TcpNettyServer tcpNettyServer;
 
+    @GetMapping("/init/info")
+    @Operation(summary = "查询初始化监听信息")
+    public CommonResult<List<LocalInfoResq>> getInitInfo() {
+        return CommonResult.success(tcpNettyServer.getInitInfo());
+    }
+
     @GetMapping("/info")
     @Operation(summary = "查询连接信息")
     public CommonResult<List<TcpInfoResq>> getChannelInfo(@RequestParam(value = "port", required = false) String port) {
         return CommonResult.success(tcpNettyServer.getChannelInfo(port));
     }
 
-    @PostMapping("/connect")
-    @Operation(summary = "连接tcp客户端")
-    public CommonResult<String> connect(@Validated @RequestBody TcpCommonReq req) throws ExecutionException, InterruptedException {
-        return tcpNettyServer.connect(req);
+    @PostMapping("/addMonitor")
+    @Operation(summary = "新增监听")
+    public CommonResult<String> addMonitor(@Validated @RequestBody TcpCommonReq req) {
+        return tcpNettyServer.addMonitor(req);
+    }
+    @PostMapping("/openMonitor")
+    @Operation(summary = "启动监听")
+    public CommonResult<String> openMonitor(@Validated @RequestBody TcpCommonReq req) {
+        return tcpNettyServer.openMonitor(req);
     }
 
     @PostMapping("/send")
@@ -60,6 +71,20 @@ public class TcpServerController {
             }
         }
         ErrorCode errorCode = tcpNettyServer.closeChannel(tcpCommonReqList);
+        return new CommonResult<>(errorCode);
+    }
+
+    @PostMapping("/closeMonitor")
+    @Operation(summary = "关闭监听")
+    public CommonResult<String> closeMonitor(@RequestBody @Valid TcpCommonReq tcpCommonReq) {
+        ErrorCode errorCode = tcpNettyServer.closeMonitor(tcpCommonReq);
+        return new CommonResult<>(errorCode);
+    }
+
+    @PostMapping("/deleteMonitor")
+    @Operation(summary = "删除监听")
+    public CommonResult<String> deleteMonitor(@RequestBody @Valid TcpCommonReq tcpCommonReq) {
+        ErrorCode errorCode = tcpNettyServer.deleteMonitor(tcpCommonReq);
         return new CommonResult<>(errorCode);
     }
 }

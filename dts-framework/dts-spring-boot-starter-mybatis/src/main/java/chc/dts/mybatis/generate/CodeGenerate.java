@@ -28,7 +28,7 @@ public class CodeGenerate {
         path.put(OutputFile.xml, basePath2 + "mapper");
 
 
-        FastAutoGenerator.create("jdbc:mysql://127.0.0.1:3306/data?serverTimezone=Asia/Shanghai", "root", "123456")
+        FastAutoGenerator.create("jdbc:mysql://121.36.229.234:3306/data?serverTimezone=Asia/Shanghai", "root", "Dts@123<>?")
                 .globalConfig(builder ->
                         builder.author("xgy") // 设置作者
                                 .enableSwagger() // 开启 swagger 模式
