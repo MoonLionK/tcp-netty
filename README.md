@@ -30,11 +30,11 @@
 | dts-all                         |    | 字典管理       | 字典基本查询及本地缓存实现               |
 | dts-all                         | ⭐️ | 权限管理       | 角色菜单权限分配、设置角色按机构进行数据范围权限划分  |
 | dts-all                         | ⭐️ | 注册         | 注册                          |
-| dts-all                         | ⭐️ | 登陆         | 登陆                          |
+| dts-all                         |    | 登陆         | 登陆                          |
 | dts-all                         | ⭐️ | 权限         | 权限                          |
-| dts-receive                     | ⭐️ | 规则引擎       | QLExpress实现的动态配置            |
+| dts-receive                     |    | 规则引擎       | QLExpress实现的动态配置            |
 | dts-all                         | ⭐️ | 日志查看       | 可查看数据接收、处理、转发、操作的详细日志       |
-|                                 | ⭐️ | docker部署   | docker部署                    |
+|                                 |    | docker部署   | docker部署                    |
 
 # 三 开发原则
 1 接口返回对象统一使用[CommonResult.java](common%2Fsrc%2Fmain%2Fjava%2Fchc%2Fdts%2Fcommon%2Fpojo%2FCommonResult.java)
