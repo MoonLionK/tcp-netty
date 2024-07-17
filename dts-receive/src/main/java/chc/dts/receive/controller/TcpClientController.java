@@ -1,19 +1,22 @@
 package chc.dts.receive.controller;
 
+import chc.dts.api.entity.ConnectInfo;
 import chc.dts.api.pojo.vo.TcpCommonReq;
 import chc.dts.common.exception.ErrorCode;
 import chc.dts.common.exception.ServiceException;
 import chc.dts.common.pojo.CommonResult;
+import chc.dts.common.pojo.PageParam;
+import chc.dts.common.pojo.PageResult;
+import chc.dts.receive.controller.vo.ClientUpdateReq;
 import chc.dts.receive.netty.client.TcpNettyClient;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -27,6 +30,31 @@ import java.util.List;
 public class TcpClientController {
     @Resource
     private TcpNettyClient tcpNettyClient;
+
+    @PostMapping("/save")
+    @Operation(summary = "新增客户端连接")
+    public CommonResult<Boolean> save(@Valid @RequestParam @NotNull @Schema(description = "ip", requiredMode = Schema.RequiredMode.REQUIRED) String ip,
+                                      @Valid @RequestParam @NotNull @Schema(description = "端口", requiredMode = Schema.RequiredMode.REQUIRED) Integer port) {
+        return tcpNettyClient.save(ip, port);
+    }
+
+    @PostMapping("/update")
+    @Operation(summary = "修改客户端连接")
+    public CommonResult<Boolean> update(@Valid @RequestBody ClientUpdateReq req) {
+        return tcpNettyClient.update(req);
+    }
+
+    @PostMapping("/info")
+    @Operation(summary = "查询客户端连接信息")
+    public CommonResult<PageResult<ConnectInfo>> info(@Valid @RequestBody PageParam pageParam) {
+        return tcpNettyClient.info(pageParam);
+    }
+
+    @PostMapping("/delete")
+    @Operation(summary = "删除客户端连接信息")
+    public CommonResult<Boolean> delete(@Valid @RequestParam @Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED) Integer id) {
+        return tcpNettyClient.delete(id);
+    }
 
     @PostMapping("/connect")
     @Operation(summary = "连接tcp服务器")

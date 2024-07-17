@@ -1,6 +1,8 @@
 package chc.dts.api.pojo.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -11,6 +13,8 @@ import java.util.List;
  * @date 2024/6/17 10:03
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TcpInfoResq {
     /**
      * ip
@@ -19,7 +23,11 @@ public class TcpInfoResq {
     /**
      * 端口
      */
-    private String port;
+    private Integer port;
+    /**
+     * 状态 0:启动 1关闭
+     */
+    private Integer status;
     /**
      * 通道信息集合
      */
@@ -30,6 +38,8 @@ public class TcpInfoResq {
      * 通道信息
      */
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class RemoteInfo {
         /**
          * ip

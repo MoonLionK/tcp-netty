@@ -5,7 +5,7 @@ import com.ql.util.express.Operator;
 /**
  * 计算扩展库
  *
- * @author xgy
+ * @author sunbo
  * @date 2024/5/28 18:51
  */
 public class ExpressRunnerFunction {

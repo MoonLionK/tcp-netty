@@ -28,8 +28,12 @@ import static chc.dts.common.util.byteUtil.ByteArrayUtils.subArray;
  */
 
 public class MyProtocolDecoder extends LengthFieldBasedFrameDecoder {
+    private PacketInfoMapper packetInfoMapper;
 
-    private final PacketInfoMapper packetInfoMapper = SpringUtils.getBean(PacketInfoMapper.class);
+    public MyProtocolDecoder(PacketInfoMapper packetInfoMapper) {
+        super(Integer.MAX_VALUE, 0, 4, 0, 4);
+        this.packetInfoMapper = packetInfoMapper;
+    }
 
     /**
      * 初始化方法，参数从配置当中获取
@@ -37,7 +41,6 @@ public class MyProtocolDecoder extends LengthFieldBasedFrameDecoder {
     public MyProtocolDecoder() {
         super(Integer.MAX_VALUE, 0, 4, 0, 4);
     }
-
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) {

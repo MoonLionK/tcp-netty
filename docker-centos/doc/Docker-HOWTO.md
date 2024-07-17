@@ -4,10 +4,21 @@
 一 centos安装docker
 # 安装所需的软件包。yum-utils 提供了 yum-config-manager ，并且 device mapper 存储驱动程序需要 device-mapper-persistent-data 和 lvm2
 sudo yum install -y yum-utils 
-# 设置阿里云仓库
-sudo yum-config-manager \
-    --add-repo \
-    https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+# 设置仓库,大部分国内仓库已失效
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<EOF
+{
+    "registry-mirrors": [
+        "https://hub.uuuadc.top",
+        "https://docker.anyhub.us.kg",
+        "https://dockerhub.jobcher.com",
+        "https://dockerhub.icu",
+        "https://docker.ckyl.me",
+        "https://docker.awsl9527.cn"
+    ]
+}
+EOF
+sudo systemctl daemon-reload
 # 安装最新版本的 Docker Engine-Community 和 containerd
 sudo yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 # 启动

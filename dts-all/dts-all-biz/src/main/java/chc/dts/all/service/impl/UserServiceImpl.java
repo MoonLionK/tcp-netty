@@ -4,13 +4,14 @@ import chc.dts.all.dao.UserMapper;
 import chc.dts.all.entity.User;
 import chc.dts.all.service.IUserService;
 import chc.dts.api.pojo.constants.ErrorCodeConstants;
+import chc.dts.api.pojo.vo.data.UserAddOrUpdateVO;
 import chc.dts.api.pojo.vo.data.UserReqVo;
 import chc.dts.common.exception.util.ServiceExceptionUtil;
 import chc.dts.common.pojo.PageResult;
-import chc.dts.common.util.auth.TokenUtil;
 import chc.dts.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,33 +35,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public PageResult<User> getUserPage(UserReqVo pageReqVO) {
-        return getBaseMapper().selectPage(pageReqVO);
+        PageResult<User> userPageResult = getBaseMapper().selectPage(pageReqVO);
+        userPageResult.getList().forEach(t-> t.setPassword("******"));
+        return userPageResult;
     }
 
-    @Override
-    public Integer createUser(UserReqVo createReqVO) {
-        //校验重名
-        validateUserNameExists(createReqVO.getUsername(), null);
-        //添加
-        User user = new User();
-        user.setCreator(TokenUtil.getLoginId());
-        BeanUtils.copyProperties(createReqVO, user);
-        return getBaseMapper().insert(user);
-    }
 
     @Override
-    public void updateUser(UserReqVo updateReqVO) {
+    public boolean updateOrInsertUser(UserAddOrUpdateVO updateReqVO) {
         //添加
         User user = new User();
         BeanUtils.copyProperties(updateReqVO, user);
-
         validateUserNameExists(updateReqVO.getUsername(), user);
-        getBaseMapper().updateById(user);
+
+        if (user.getId() == null) {
+            return SqlHelper.retBool(getBaseMapper().insert(user));
+        } else {
+            return SqlHelper.retBool(getBaseMapper().updateById(user));
+        }
+
     }
 
     @Override
-    public void deleteUser(Integer id) {
-        getBaseMapper().delete(new LambdaQueryWrapper<User>().eq(User::getDeleted, id));
+    public boolean deleteUser(String username) {
+        return SqlHelper.retBool(getBaseMapper().delete(new LambdaQueryWrapper<User>().eq(User::getUsername, username)));
     }
 
     @Override

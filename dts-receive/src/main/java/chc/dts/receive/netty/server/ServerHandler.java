@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Getter
     private static final Map<ChannelId, ChannelHandlerContext> SERVER_CONTEXT_MAP = new ConcurrentHashMap<>();
-    private TcpNettyServer tcpNettyServer;
+    private final TcpNettyServer tcpNettyServer;
 
     public ServerHandler(TcpNettyServer tcpNettyServer) {
         this.tcpNettyServer = tcpNettyServer;

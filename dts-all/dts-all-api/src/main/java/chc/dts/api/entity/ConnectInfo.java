@@ -35,6 +35,10 @@ public class ConnectInfo extends BaseDO {
     @TableField("ip")
     private String ip;
 
+    @Schema(description = "端口")
+    @TableField("port")
+    private Integer port;
+
     @Schema(description = "远程端口")
     @TableField("remote_port")
     private Integer remotePort;

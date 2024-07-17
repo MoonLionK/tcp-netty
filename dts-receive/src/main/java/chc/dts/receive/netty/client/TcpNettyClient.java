@@ -2,16 +2,22 @@ package chc.dts.receive.netty.client;
 
 import chc.dts.api.dao.ChannelInfoMapper;
 import chc.dts.api.dao.ConnectInfoMapper;
-import chc.dts.api.pojo.vo.LocalInfoResq;
+import chc.dts.api.entity.ConnectInfo;
 import chc.dts.api.pojo.vo.TcpCommonReq;
 import chc.dts.api.pojo.vo.TcpInfoResq;
-import chc.dts.api.service.IConnectInfoService;
 import chc.dts.common.core.KeyValue;
 import chc.dts.common.exception.ErrorCode;
+import chc.dts.common.exception.ServiceException;
 import chc.dts.common.exception.enums.GlobalErrorCodeConstants;
 import chc.dts.common.pojo.CommonResult;
+import chc.dts.common.pojo.PageParam;
+import chc.dts.common.pojo.PageResult;
+import chc.dts.common.util.object.BeanUtils;
+import chc.dts.mybatis.core.query.LambdaQueryWrapperX;
+import chc.dts.receive.controller.vo.ClientUpdateReq;
 import chc.dts.receive.netty.TcpAbstract;
 import chc.dts.receive.netty.TcpInterface;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -26,9 +32,11 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static chc.dts.common.config.ThreadPoolConfig.COMMON_POOL;
 
@@ -49,14 +57,14 @@ public class TcpNettyClient extends TcpAbstract implements TcpInterface {
     //创建客户端端的启动对象，配置参数
     Bootstrap bootstrap = new Bootstrap();
 
-    protected TcpNettyClient(IConnectInfoService iConnectInfoService, ChannelInfoMapper channelInfoMapper) {
-        super(iConnectInfoService, channelInfoMapper);
+    protected TcpNettyClient(ConnectInfoMapper connectInfoMapper, ChannelInfoMapper channelInfoMapper) {
+        super(connectInfoMapper, channelInfoMapper);
     }
 
-
-    @Override
     @PostConstruct
     public void startNetty() {
+        //项目启动时修改所有连接状态为1,因为服务关闭时所有连接会断开
+        connectInfoMapper.update(new LambdaUpdateWrapper<ConnectInfo>().set(ConnectInfo::getStatus, 1));
         ArrayList<KeyValue<String, Integer>> keyValues = connectInfoMapper.selectActiveIpAndPort();
         commonThreadPoolTaskExecutor.execute(() -> {
             try {
@@ -82,7 +90,8 @@ public class TcpNettyClient extends TcpAbstract implements TcpInterface {
                         //解码器，接收消息时候用
                         ch.pipeline().addLast("decode", new StringDecoder());
                         //业务处理类，最终的消息会在这个handler中进行业务处理
-                        ch.pipeline().addLast("handler", new ClientHandler());
+                        TcpNettyClient tcpNettyClient = new TcpNettyClient(connectInfoMapper, channelInfoMapper);
+                        ch.pipeline().addLast("handler", new ClientHandler(tcpNettyClient));
                     }
                 });
         List<ChannelFuture> channelFutureList = new ArrayList<>();
@@ -132,12 +141,39 @@ public class TcpNettyClient extends TcpAbstract implements TcpInterface {
     }
 
     @Override
-    public List<TcpInfoResq> getChannelInfo(String port) {
+    public List<TcpInfoResq> getChannelInfo() {
         return null;
     }
 
-    @Override
-    public List<LocalInfoResq> getInitInfo() {
-        return null;
+    /**
+     * 查询客户端连接信息
+     *
+     * @return CommonResult<PageResult < ConnectInfo>>
+     */
+    public CommonResult<PageResult<ConnectInfo>> info(@Valid PageParam pageParam) {
+        PageResult<ConnectInfo> connectInfoPageResult = connectInfoMapper.selectPage(pageParam, new LambdaQueryWrapperX<ConnectInfo>()
+                .orderByDesc(ConnectInfo::getUpdateTime));
+        return CommonResult.success(connectInfoPageResult);
+    }
+
+    public CommonResult<Boolean> save(String ip, Integer port) {
+        return CommonResult.success(connectInfoMapper.insert(new ConnectInfo().setIp(ip).setPort(port)) == 1);
+    }
+
+    public CommonResult<Boolean> update(ClientUpdateReq req) {
+        ConnectInfo connectInfo = BeanUtils.toBean(req, ConnectInfo.class);
+        int i = connectInfoMapper.updateById(connectInfo);
+        if (i == 0) {
+            throw new ServiceException(500, "对应的数据不存在");
+        }
+        return CommonResult.success(i == 1);
+    }
+
+    public CommonResult<Boolean> delete(Integer id) {
+        ConnectInfo connectInfo = connectInfoMapper.selectById(id);
+        if (Objects.equals(connectInfo.getStatus(), 0)) {
+            return CommonResult.error(new ErrorCode(500, "启动状态的服务器监听不允许删除"));
+        }
+        return CommonResult.success(connectInfoMapper.deleteById(id) == 1);
     }
 }

@@ -11,7 +11,6 @@ import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,8 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClientHandler extends SimpleChannelInboundHandler<Object> {
     @Getter
     private static final Map<ChannelId, ChannelHandlerContext> CLIENT_CONTEXT_MAP = new ConcurrentHashMap<>();
-    @Resource
     private TcpNettyClient tcpNettyClient;
+
+    public ClientHandler(TcpNettyClient tcpNettyClient) {
+        this.tcpNettyClient = tcpNettyClient;
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
@@ -62,7 +64,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
         Channel channel = ctx.channel();
         String localAddress = channel.localAddress().toString().replace("/", "");
         String remoteAddress = channel.remoteAddress().toString().replace("/", "");
-        tcpNettyClient.deviceAdd(localAddress, remoteAddress, ctx.channel());
+        tcpNettyClient.deviceAdd(remoteAddress, localAddress, ctx.channel());
         log.info("netty-->TCP客户端服务已连接：" + channel.remoteAddress());
     }
 

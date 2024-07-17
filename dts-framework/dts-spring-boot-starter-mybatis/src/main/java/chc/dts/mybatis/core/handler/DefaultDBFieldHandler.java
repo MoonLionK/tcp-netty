@@ -55,9 +55,9 @@ public class DefaultDBFieldHandler implements MetaObjectHandler {
         // 当前登录用户不为空，更新人为空，则当前登录用户为更新人
         Object modifier = getFieldValByName("updater", metaObject);
         //todo 整合sa_token后获取userId改为动态
-        Long userId = 1L;
+        Integer userId = 1;
         if (Objects.nonNull(userId) && Objects.isNull(modifier)) {
-            setFieldValByName("updater", userId.toString(), metaObject);
+            setFieldValByName("updater", userId, metaObject);
         }
     }
 }

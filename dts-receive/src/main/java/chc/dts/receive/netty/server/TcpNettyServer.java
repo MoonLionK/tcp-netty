@@ -2,12 +2,11 @@ package chc.dts.receive.netty.server;
 
 import chc.dts.api.common.CodeGenUtil;
 import chc.dts.api.dao.ChannelInfoMapper;
+import chc.dts.api.dao.ConnectInfoMapper;
 import chc.dts.api.entity.ChannelInfo;
 import chc.dts.api.pojo.constants.CodeGenEnum;
-import chc.dts.api.pojo.vo.LocalInfoResq;
 import chc.dts.api.pojo.vo.TcpCommonReq;
 import chc.dts.api.pojo.vo.TcpInfoResq;
-import chc.dts.api.service.IConnectInfoService;
 import chc.dts.api.service.IDeviceService;
 import chc.dts.common.core.KeyValue;
 import chc.dts.common.exception.ErrorCode;
@@ -29,7 +28,6 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -74,14 +72,13 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
     EventLoopGroup workerGroup = new NioEventLoopGroup();
     List<ChannelFuture> channelFutureList = new ArrayList<>();
 
-    protected TcpNettyServer(IConnectInfoService iConnectInfoService, ChannelInfoMapper channelInfoMapper) {
-        super(iConnectInfoService, channelInfoMapper);
+    protected TcpNettyServer(ConnectInfoMapper connectInfoMapper, ChannelInfoMapper channelInfoMapper) {
+        super(connectInfoMapper, channelInfoMapper);
     }
 
     /**
      * 根据设备信息获取启动时需要监听的端口信息
      */
-    @Override
     @PostConstruct
     public void startNetty() {
         ArrayList<KeyValue<String, Integer>> keyValues = deviceService.selectActiveIpAndPort(TCP_SERVER);
@@ -114,8 +111,6 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
                 .setIp(req.getIp())
                 .setPort(req.getPort())
                 .setChannelCode(codeGenUtil.getCode(CodeGenEnum.CHANNEL));
-        channelInfo.setCreator(1);
-        channelInfo.setUpdater(1);
         channelInfoMapper.insert(channelInfo);
         return CommonResult.success();
     }
@@ -165,46 +160,29 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
     }
 
     @Override
-    public List<TcpInfoResq> getChannelInfo(String port) {
-        List<TcpInfoResq> resqList = new ArrayList<>();
-        DEVICE_MAP.forEach((key, value) -> {
-            TcpInfoResq resq = new TcpInfoResq();
-            String[] split = key.split(":");
-            if (StringUtils.isNotEmpty(port)) {
-                if (port.equals(split[1])) {
-                    buildResq(value, resq, split);
-                }
-            } else {
-                buildResq(value, resq, split);
-            }
-            resqList.add(resq);
-        });
-        return resqList;
-    }
-
-    @Override
-    public List<LocalInfoResq> getInitInfo() {
+    public List<TcpInfoResq> getChannelInfo() {
         List<ChannelInfo> channelInfos = channelInfoMapper.selectList();
-        // 转换为新的 List
-        return channelInfos.stream()
-                .map(info -> new LocalInfoResq(info.getIp(), info.getPort(), info.getStatus()))
+        // 查询初始化信息
+        List<TcpInfoResq> tcpInfoResqs = channelInfos.stream()
+                .map(info -> new TcpInfoResq(info.getIp(), info.getPort(), info.getStatus(), null))
                 .collect(Collectors.toList());
-    }
-
-    private static void buildResq(ArrayList<KeyValue<String, ChannelId>> value, TcpInfoResq resq, String[] split) {
-        resq.setIp(split[0]);
-        resq.setPort(split[1]);
-        List<TcpInfoResq.RemoteInfo> remoteInfoList = new ArrayList<>();
-        for (KeyValue<String, ChannelId> keyValue : value) {
-            TcpInfoResq.RemoteInfo remoteInfo = new TcpInfoResq.RemoteInfo();
-            String[] split1 = keyValue.getKey().split(":");
-            remoteInfo.setIp(split1[0]);
-            remoteInfo.setRemotePort(split1[1]);
-            remoteInfoList.add(remoteInfo);
+        for (TcpInfoResq tcpInfoResq : tcpInfoResqs) {
+            List<TcpInfoResq.RemoteInfo> list = new ArrayList<>();
+            DEVICE_MAP.forEach((key, value) -> {
+                String[] split1 = key.split(":");
+                String ip = split1[0];
+                Integer port = Integer.valueOf(split1[1]);
+                if (tcpInfoResq.getPort().equals(port) && (tcpInfoResq.getIp().equals(ip) || "0.0.0.0".equals(tcpInfoResq.getIp()))) {
+                    for (KeyValue<String, ChannelId> keyValue : value) {
+                        String[] split = keyValue.getKey().split(":");
+                        list.add(new TcpInfoResq.RemoteInfo(split[0], split[1]));
+                    }
+                }
+            });
+            tcpInfoResq.setRemoteInfoList(list);
         }
-        resq.setRemoteInfoList(remoteInfoList);
+        return tcpInfoResqs;
     }
-
 
     private void init(ArrayList<KeyValue<String, Integer>> keyValues) throws InterruptedException {
         deviceChannelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -242,7 +220,7 @@ public class TcpNettyServer extends TcpAbstract implements TcpInterface {
                              */
                             ch.pipeline().addLast(new IdleStateHandler(7000, 7000, 300, TimeUnit.SECONDS));
                             //编码器。发送消息时候用
-                            ch.pipeline().addLast("decode", new ServerHandler(new TcpNettyServer(iConnectInfoService, channelInfoMapper)));
+                            ch.pipeline().addLast("decode", new ServerHandler(new TcpNettyServer(connectInfoMapper, channelInfoMapper)));
                         }
                     });
             //启动服务器(并绑定端口),此处必须使用2个循环若改变顺序就无法监听多个端口

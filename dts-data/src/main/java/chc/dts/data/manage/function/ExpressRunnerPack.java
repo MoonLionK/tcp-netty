@@ -3,7 +3,7 @@ import com.ql.util.express.ExpressRunner;
 /**
  * 计算ExpressRunner封装为单例
  *
- * @author xgy
+ * @author sunbo
  * @date 2024/5/28 18:51
  */
 public class ExpressRunnerPack {

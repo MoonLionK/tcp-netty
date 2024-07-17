@@ -1,6 +1,5 @@
 package chc.dts.receive.controller;
 
-import chc.dts.api.pojo.vo.LocalInfoResq;
 import chc.dts.api.pojo.vo.TcpCommonReq;
 import chc.dts.api.pojo.vo.TcpInfoResq;
 import chc.dts.common.exception.ErrorCode;
@@ -29,16 +28,10 @@ public class TcpServerController {
     @Resource
     private TcpNettyServer tcpNettyServer;
 
-    @GetMapping("/init/info")
-    @Operation(summary = "查询初始化监听信息")
-    public CommonResult<List<LocalInfoResq>> getInitInfo() {
-        return CommonResult.success(tcpNettyServer.getInitInfo());
-    }
-
     @GetMapping("/info")
     @Operation(summary = "查询连接信息")
-    public CommonResult<List<TcpInfoResq>> getChannelInfo(@RequestParam(value = "port", required = false) String port) {
-        return CommonResult.success(tcpNettyServer.getChannelInfo(port));
+    public CommonResult<List<TcpInfoResq>> getChannelInfo() {
+        return CommonResult.success(tcpNettyServer.getChannelInfo());
     }
 
     @PostMapping("/addMonitor")
@@ -46,6 +39,7 @@ public class TcpServerController {
     public CommonResult<String> addMonitor(@Validated @RequestBody TcpCommonReq req) {
         return tcpNettyServer.addMonitor(req);
     }
+
     @PostMapping("/openMonitor")
     @Operation(summary = "启动监听")
     public CommonResult<String> openMonitor(@Validated @RequestBody TcpCommonReq req) {

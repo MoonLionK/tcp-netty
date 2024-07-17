@@ -1,6 +1,7 @@
 package chc.dts.all.service;
 
 import chc.dts.all.entity.User;
+import chc.dts.api.pojo.vo.data.UserAddOrUpdateVO;
 import chc.dts.api.pojo.vo.data.UserReqVo;
 import chc.dts.common.pojo.PageResult;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -20,15 +21,36 @@ public interface IUserService extends IService<User> {
      * @param userName 用户名
      * @return 用户
      */
-    public User getUserByName(String userName);
+     User getUserByName(String userName);
 
+
+    /**
+     * 获取用户分页信息
+     * @param pageReqVO 分页请求参数
+     * @return 分页结果
+     */
     PageResult<User> getUserPage(UserReqVo pageReqVO);
 
-    Integer createUser(UserReqVo createReqVO);
 
+    /**
+     * * 验证用户名是否存在
+     * @param userName 用户名
+     * @param oldUser 旧用户
+     */
     void validateUserNameExists(String userName,User oldUser);
 
-    void updateUser(UserReqVo updateReqVO);
+    /**
+     * * 更新或者新增用户信息
+     * @param updateReqVO 更新或者新增用户信息
+     * @return 更新或者新增结果
+     */
+    boolean updateOrInsertUser(UserAddOrUpdateVO updateReqVO);
 
-    void deleteUser(Integer id);
+
+    /**
+     * * 删除用户
+     * @param userName 用户名
+     * @return  删除结果
+     */
+    boolean deleteUser(String userName);
 }

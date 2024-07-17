@@ -1,6 +1,5 @@
 package chc.dts.receive.netty;
 
-import chc.dts.api.pojo.vo.LocalInfoResq;
 import chc.dts.api.pojo.vo.TcpCommonReq;
 import chc.dts.api.pojo.vo.TcpInfoResq;
 import chc.dts.common.exception.ErrorCode;
@@ -35,15 +34,8 @@ public interface TcpInterface {
     /**
      * 查询连接信息
      *
-     * @param port 本地端口,不传查所有
      * @return TcpInfoResq
      */
-    List<TcpInfoResq> getChannelInfo(String port);
+    List<TcpInfoResq> getChannelInfo();
 
-    /**
-     * 获取初始化连接信息
-     *
-     * @return List<LocalInfoResq>
-     */
-    List<LocalInfoResq> getInitInfo();
 }

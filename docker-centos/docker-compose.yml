@@ -12,6 +12,7 @@ services:
       - ./mysql/logs:/logs
       - ./mysql/data:/var/lib/mysql
       - ./mysql/db/:/docker-entrypoint-initdb.d/
+      - /etc/localtime:/etc/localtime:ro
     command: [
       'mysqld',
       '--innodb-buffer-pool-size=8G',
@@ -36,6 +37,7 @@ services:
     volumes:
       - ./redis/conf/redis.conf:/home/dts/redis/redis.conf
       - ./redis/data:/data
+      - /etc/localtime:/etc/localtime:ro
     command: redis-server /home/dts/redis/redis.conf
 
   dts-nginx:
@@ -47,10 +49,19 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/html/dist:/home/dts/projects/dts-ui
+      - ./nginx/apps/dts:/data/docker/nginx/apps/dts
       - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/logs:/var/log/nginx
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/html/50.html:/etc/nginx/html/50x.html
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - dts-receive
+      - dts-all
+      - dts-data
+    links:
+      - dts-all
+      - dts-data
 
   hertzbeat:
     container_name: dts-hertzbeat
@@ -73,12 +84,12 @@ services:
       dockerfile: dockerfile
     volumes:
       - ./dts/log:/log
+      - /etc/localtime:/etc/localtime:ro
     # 加入本地网络相当于暴露了所有端口
     network_mode: host
     depends_on:
       - dts-redis
       - dts-mysql
-      - dts-nginx
 
   dts-all:
     container_name: dts-all
@@ -88,12 +99,15 @@ services:
       dockerfile: dockerfile
     volumes:
       - ./dts/log:/log
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - "8081:8081"
     depends_on:
       - dts-redis
       - dts-mysql
-      - dts-nginx
+    links:
+      - dts-redis
+      - dts-mysql
 
   dts-data:
     container_name: dts-data
@@ -103,14 +117,15 @@ services:
       dockerfile: dockerfile
     volumes:
       - ./dts/log:/log
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - "8082:8082"
     depends_on:
       - dts-redis
       - dts-mysql
-      - dts-nginx
-
-
+    links:
+      - dts-redis
+      - dts-mysql
 
 networks:
   host:

@@ -1,17 +1,17 @@
 package chc.dts.receive.netty;
 
 import chc.dts.api.dao.ChannelInfoMapper;
+import chc.dts.api.dao.ConnectInfoMapper;
 import chc.dts.api.entity.ChannelInfo;
 import chc.dts.api.entity.ConnectInfo;
 import chc.dts.api.pojo.vo.TcpCommonReq;
-import chc.dts.api.service.IConnectInfoService;
 import chc.dts.common.core.KeyValue;
 import chc.dts.common.exception.ErrorCode;
 import chc.dts.common.exception.ServiceException;
 import chc.dts.common.exception.enums.GlobalErrorCodeConstants;
+import chc.dts.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
@@ -19,10 +19,7 @@ import io.netty.channel.group.ChannelGroup;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -33,7 +30,7 @@ import java.util.stream.Collectors;
  * @date 2024/5/9 11:02
  */
 public abstract class TcpAbstract {
-    public IConnectInfoService iConnectInfoService;
+    public ConnectInfoMapper connectInfoMapper;
     public ChannelInfoMapper channelInfoMapper;
 
     /**
@@ -43,17 +40,12 @@ public abstract class TcpAbstract {
     /**
      * 设备对应的通道信息 {localAddress:[remoteAddress:ChannelId]}
      */
-    protected static final ConcurrentHashMap<String, ArrayList<KeyValue<String, ChannelId>>> DEVICE_MAP = new ConcurrentHashMap<>();
+    protected static final ConcurrentHashMap<String, HashSet<KeyValue<String, ChannelId>>> DEVICE_MAP = new ConcurrentHashMap<>();
 
-    protected TcpAbstract(IConnectInfoService iConnectInfoService, ChannelInfoMapper channelInfoMapper) {
-        this.iConnectInfoService = iConnectInfoService;
+    protected TcpAbstract(ConnectInfoMapper connectInfoMapper, ChannelInfoMapper channelInfoMapper) {
+        this.connectInfoMapper = connectInfoMapper;
         this.channelInfoMapper = channelInfoMapper;
     }
-
-    /**
-     * 项目启动时就创建监听/连接
-     */
-    protected abstract void startNetty();
 
     /**
      * 根据ip和端口信息获取对应的通道信息
@@ -64,7 +56,7 @@ public abstract class TcpAbstract {
     public Channel getChannel(TcpCommonReq req) {
         String localAddress = req.getIp() + ":" + req.getPort();
         String remoteAddress = req.getIp() + ":" + req.getRemotePort();
-        ArrayList<KeyValue<String, ChannelId>> keyValues = DEVICE_MAP.get(localAddress);
+        HashSet<KeyValue<String, ChannelId>> keyValues = DEVICE_MAP.get(localAddress);
         if (!CollectionUtils.isEmpty(keyValues)) {
             Optional<KeyValue<String, ChannelId>> first = keyValues.stream().filter(keyValue -> keyValue.getKey().equals(remoteAddress)).findFirst();
             return first.map(stringChannelIdKeyValue -> deviceChannelGroup.find(stringChannelIdKeyValue.getValue())).orElse(null);
@@ -78,10 +70,8 @@ public abstract class TcpAbstract {
     public void deviceAdd(String localAddress, String remoteAddress, Channel channel) {
         deviceChannelGroup.add(channel);
         KeyValue<String, ChannelId> keyValue = new KeyValue<>(remoteAddress, channel.id());
-        ArrayList<KeyValue<String, ChannelId>> keyValues = DEVICE_MAP.get(localAddress);
-        if (CollectionUtils.isEmpty(keyValues)) {
-            DEVICE_MAP.put(localAddress, Lists.newArrayList(keyValue));
-        } else {
+        HashSet<KeyValue<String, ChannelId>> keyValues = DEVICE_MAP.get(localAddress);
+        if (!CollectionUtils.isEmpty(keyValues)) {
             keyValues.add(keyValue);
             DEVICE_MAP.put(localAddress, keyValues);
         }
@@ -93,21 +83,32 @@ public abstract class TcpAbstract {
         String remotePort = split1[1];
 
         ChannelInfo channelInfo = channelInfoMapper.selectOne(new LambdaQueryWrapper<ChannelInfo>()
-                .eq(ChannelInfo::getIp, "0.0.0.0")
+                .and(i -> i.eq(ChannelInfo::getIp, ip).or(i1 -> i1.eq(ChannelInfo::getIp, "0.0.0.0")))
                 .eq(ChannelInfo::getPort, localPort));
         if (ObjectUtils.isEmpty(channelInfo)) {
             throw new ServiceException(500, "找不到对应的监听信息:" + ip + ":" + localPort);
         }
-        ConnectInfo connectInfo = new ConnectInfo()
-                .setIp(ip)
-                .setRemotePort(Integer.valueOf(remotePort))
-                .setChannelId(channelInfo.getId())
-                .setAutoConnect(false)
-                .setStatus(0);
-        connectInfo.setCreator(1);
-        connectInfo.setUpdater(1);
-        iConnectInfoService.saveOrUpdate(connectInfo);
 
+        ConnectInfo connectInfo1 = connectInfoMapper.selectOne(new LambdaQueryWrapperX<ConnectInfo>()
+                .eqIfPresent(ConnectInfo::getIp, ip)
+                .eqIfPresent(ConnectInfo::getPort, localPort)
+                .eqIfPresent(ConnectInfo::getRemotePort, null));
+        //判断连接信息是否存在
+        if (ObjectUtils.isEmpty(connectInfo1)) {
+            ConnectInfo connectInfo = new ConnectInfo()
+                    .setIp(ip)
+                    .setPort(Integer.valueOf(localPort))
+                    .setRemotePort(Integer.valueOf(remotePort))
+                    .setChannelId(channelInfo.getId())
+                    .setAutoConnect(false)
+                    .setStatus(0);
+            connectInfoMapper.insert(connectInfo);
+        } else {
+            connectInfo1.setRemotePort(Integer.valueOf(remotePort))
+                    .setChannelId(channelInfo.getId())
+                    .setStatus(0);
+            connectInfoMapper.updateById(connectInfo1);
+        }
 
     }
 
@@ -116,7 +117,7 @@ public abstract class TcpAbstract {
      */
     public void deviceRemove(String localAddress, String remoteAddress, Channel channel) {
         deviceChannelGroup.remove(channel);
-        ArrayList<KeyValue<String, ChannelId>> keyValues = DEVICE_MAP.get(localAddress);
+        HashSet<KeyValue<String, ChannelId>> keyValues = DEVICE_MAP.get(localAddress);
         if (!CollectionUtils.isEmpty(keyValues)) {
             keyValues.removeIf(keyValue -> keyValue.getKey().equals(remoteAddress));
             DEVICE_MAP.put(localAddress, keyValues);
@@ -130,14 +131,16 @@ public abstract class TcpAbstract {
 
         ChannelInfo channelInfo = channelInfoMapper.selectOne(new LambdaQueryWrapper<ChannelInfo>()
                 .eq(ChannelInfo::getIp, "0.0.0.0")
+                .or(i -> i.eq(ChannelInfo::getIp, ip))
                 .eq(ChannelInfo::getPort, localPort));
         if (ObjectUtils.isEmpty(channelInfo)) {
             throw new ServiceException(500, "找不到对应的监听信息:" + ip + ":" + localPort);
         }
 
-        iConnectInfoService.update(new LambdaUpdateWrapper<ConnectInfo>()
+        connectInfoMapper.update(new LambdaUpdateWrapper<ConnectInfo>()
                 .eq(ConnectInfo::getIp, ip)
                 .eq(ConnectInfo::getRemotePort, remotePort)
+                .eq(ConnectInfo::getPort, localPort)
                 .eq(ConnectInfo::getChannelId, channelInfo.getId())
                 .set(ConnectInfo::getStatus, 1));
 
@@ -172,11 +175,15 @@ public abstract class TcpAbstract {
         for (TcpCommonReq tcpCommonReq : tcpCommonReqList) {
             Channel channel = getChannel(tcpCommonReq);
             if (channel != null) {
-                ArrayList<KeyValue<String, ChannelId>> keyValues = DEVICE_MAP.get(tcpCommonReq.getIp() + ":" + tcpCommonReq.getPort());
-                List<KeyValue<String, ChannelId>> collect = keyValues.stream()
-                        .filter(kayValue -> !kayValue.getKey().equals(tcpCommonReq.getIp() + ":" + tcpCommonReq.getRemotePort()))
-                        .collect(Collectors.toList());
-                DEVICE_MAP.put(tcpCommonReq.getIp() + ":" + tcpCommonReq.getPort(), Lists.newArrayList(collect));
+                String ip = tcpCommonReq.getIp();
+                Integer port = tcpCommonReq.getPort();
+                Integer remotePort = tcpCommonReq.getRemotePort();
+                HashSet<KeyValue<String, ChannelId>> keyValues = DEVICE_MAP.get(ip + ":" + port);
+                Set<KeyValue<String, ChannelId>> collect = keyValues.stream()
+                        .filter(kayValue -> !kayValue.getKey().equals(ip + ":" + remotePort))
+                        .collect(Collectors.toSet());
+                DEVICE_MAP.put(ip + ":" + port, new HashSet<>(collect));
+                deviceRemove(ip + ":" + port, ip + ":" + remotePort, channel);
                 channel.close();
             } else {
                 return new ErrorCode(500, tcpCommonReq.getIp() + ":" + tcpCommonReq.getRemotePort() + "找不到对应的通道信息");

@@ -8,6 +8,9 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
+/**
+ * @author xgy
+ */
 @Schema(description = "分页参数")
 @Data
 public class PageParam implements Serializable {

@@ -3,8 +3,10 @@
 <mapper namespace="chc.dts.api.dao.ConnectInfoMapper">
 
     <select id="selectActiveIpAndPort" resultMap="selectActiveIpAndPortMap">
-        select info.ip, info.remote_port
-        from connect_info info where deleted=0
+        select info.ip, info.port
+        from connect_info info
+        where deleted = 0
+          and auto_connect = true;
     </select>
     <resultMap id="selectActiveIpAndPortMap" type="chc.dts.common.core.KeyValue">
         <result property="key" column="ip"/>
